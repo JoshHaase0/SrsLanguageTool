@@ -1,6 +1,6 @@
 # SrsLanguageTool
 
-Simple tool I made to learn Bosnian using Spaced Repetition
+Simple tool I made to learn Bosnian using Spaced Repetition. Word selection is weighted based on how well you know a word
 
 pip install kivy
 ^ There is legacy code in the main.py file for a terminal based program that is stripped of many features if you do not want to install kivy
