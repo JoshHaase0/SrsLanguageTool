@@ -3,7 +3,9 @@
 Simple tool I made to learn Bosnian using Spaced Repetition. Word selection is weighted based on how well you know a word
 
 Enter = confirm guess
+
 rctrl = hint
+
 esc = new word
 
 
