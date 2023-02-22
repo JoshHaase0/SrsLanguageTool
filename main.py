@@ -2,14 +2,16 @@ import pickle
 from languages import bosnian as lng
 import os.path
 from random import randint
+from functools import partial
 
 from kivy.app import App
 from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
 from kivy.uix.boxlayout import BoxLayout
 from kivy.utils import get_color_from_hex
+from kivy.core.window import Window
 
-# Time : 3 hours, 31 minutes
+# Time : 3 hours, 55 minutes
 
 # Joshua Haase 2/15/2023 1.0
 #       Created the base app as a terminal program with a Bosnian word library of 99
@@ -22,10 +24,20 @@ from kivy.utils import get_color_from_hex
 # Joshua Haase 2/19/2023 2.1
 #       Expanded the Bosnian word library to 150 words. Made saves update when word library is expanded
 #       instead of deleting and starting a new save.
+# Joshua Haase 2/22/2023 2.2
+#       Added keyboard functionality, enter for confirm word, esc for new word, rctrl for hint
+#       Plan on adding a refocus for the textbox
 
 
 
 class MainApp(App):
+    def __init__(self, **kwargs):
+        super(MainApp, self).__init__(**kwargs)
+        self._keyboard = Window.request_keyboard(self._keyboard_closed, self, 'text')
+        if self._keyboard.widget:
+            pass 
+        self._keyboard.bind(on_key_down = self._on_keyboard_down)
+
     def build(self):
         self.dictionary = lng if not self.exists() else self.read_Save()
         if len(self.dictionary) < len(lng):
@@ -132,16 +144,19 @@ class MainApp(App):
         with open('save', 'wb') as fp:
             pickle.dump(save, fp)
             print("\nSave finished\n")
-            self.hint_Text.text = "~Save finished~"
+            self.hint_Text.text = "Save finished"
+
     # Reads a save file
     def read_Save(self):
         with open('save', 'rb') as fp:
             save = pickle.load(fp)
             return save
+        
     # Returns a bool for if the file exists or not
     def exists(self):
         return os.path.isfile("save")
 
+    # Generates a new word
     def gen_Word(self):
         weighted_Locations = []
         for i in range(len(self.dictionary)):
@@ -149,98 +164,20 @@ class MainApp(App):
                 weighted_Locations.append(i)
         location = weighted_Locations[randint(0, len(weighted_Locations) - 1)]
         return location
+    
+    def _keyboard_closed(self):
+        pass
+    
+    def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
+        print(f"{keycode}")
+        if (keycode[0] == 13):
+            self.on_guess(self.word)
+        elif (keycode[0] == 306):
+            self.hint_Text.text = f"{self.dictionary[self.location][1][0:2]}...\nLength: {len(self.eng_Words[0])}\nWords: {len(self.eng_Words)}"
+        elif (keycode[0] == 27):
+            self.new_word()
+        return True
 
 if __name__ == "__main__":
     app = MainApp()
     app.run()
-
-
-
-# Legacy code for the console app
-
-# def main():
-#     dictionary = lng if not exists() else read_Save()
-#     exit = False
-#     while True:
-#         guess = ""
-#         weighted_Locations = []
-#         for i in range(len(dictionary)):
-#             for j in range(dictionary[i][2]):
-#                 weighted_Locations.append(i)
-#         location = weighted_Locations[randint(0, len(weighted_Locations)-1)];
-#
-#         word = dictionary[location][0]
-#         eng_Words = dictionary[location][1].lower().split(" / ")
-#         while True:
-#             print(dictionary[location][0])
-#             guess = input("Guess:\t")
-#             if guess[0:2] == "./":
-#                 break
-#             elif guess == "":
-#                 print(f"\nWord:\t{dictionary[location][0]}\nHint:\t{dictionary[location][1][0:2]} -- Len: {len(dictionary[location][1].split(' / ')[0])}\n")
-#             else:
-#                 if guess.lower() in eng_Words:
-#                     dictionary[location][2] -= 3
-#                 #     Loses weight if the answer is right
-#                 else:
-#                     dictionary[location][2] += 4
-#                 #     Gains weight if the answer is wrong
-#
-#                 print(f"\n{dictionary[location][0]}\t:\t{dictionary[location][1]} --- WEIGHT: {dictionary[location][2]}\n")
-#                 break;
-#         if guess == "./SAVE":
-#             write_Save(dictionary)
-#         elif guess == "./MENU":
-#             menu()
-#         elif guess == "./QUIT":
-#             exit = True
-#             break
-#         elif guess == "./RELOAD":
-#             break
-#     if not exit:
-#         main()
-#
-# def menu():
-#     while True:
-#         option = input("\n\n1.) View Save\n2.) Top Word\n3.) Worst Word\n4.) Return\n")
-#         if (option == "1"):
-#             save = read_Save()
-#             for item in save:
-#                 print(f"{item}")
-#         elif (option == "2"):
-#             max = 0
-#             location = 0
-#             save = read_Save()
-#             for i in range(len(save)):
-#                 value = save[i][2]
-#                 if value <= max:
-#                     max = value
-#                     location = i
-#             print(f"\nMax: {save[location]}")
-#         elif (option == "3"):
-#             min = 10000
-#             location = 0
-#             save = read_Save()
-#             for i in range(len(save)):
-#                 value = save[i][2]
-#                 if value >= min:
-#                     min = value
-#                     location = i
-#             print(f"\nMin: {save[location]}")
-#         elif (option == "4"):
-#             break
-#
-#
-# # Writes a save file
-# def write_Save(save):
-#     with open('save', 'wb') as fp:
-#         pickle.dump(save, fp)
-#         print("\nSave finished\n")
-# # Reads a save file
-# def read_Save():
-#     with open('save', 'rb') as fp:
-#         save = pickle.load(fp)
-#         return save
-# # Returns a bool for if the file exists or not
-# def exists():
-#     return os.path.isfile("save")
