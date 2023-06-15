@@ -10,7 +10,6 @@ esc = new word
 
 
 pip install kivy
-^ There is legacy code in the main.py file for a terminal based program that is stripped of many features if you do not want to install kivy
 
 To add a new language library:
   1. Open languages.py
